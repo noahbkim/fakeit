@@ -10,7 +10,16 @@ COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 SOURCE = src
 BUILD = build
 
-main.o:
+build:
+	mkdir -p $(BUILD)
+
+adc.o: build
+	$(COMPILE) -c $(SOURCE)/adc.c -o $(BUILD)/adc.o
+
+lcd.o: build
+	$(COMPILE) -c $(SOURCE)/lcd.c -o $(BUILD)/lcd.o
+
+main.o: adc.o lcd.o build
 	$(COMPILE) -c $(SOURCE)/main.c -o $(BUILD)/main.o
 
 main.elf: main.o
@@ -23,3 +32,6 @@ main.hex: main.elf
 
 flash: main.hex
 	$(AVRDUDE) -U flash:w:$(BUILD)/main.hex:i
+
+clean:
+	rm -rf $(BUILD)
