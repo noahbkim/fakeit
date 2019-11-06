@@ -38,12 +38,12 @@ typedef uint8_t receive_buffer_index_t;
 typedef struct serial_t
 {
     // Pointers to relevant registers
-    volatile uint8_t *const ubrrh;
-    volatile uint8_t *const ubrrl;
-    volatile uint8_t *const ucsra;
-    volatile uint8_t *const ucsrb;
-    volatile uint8_t *const ucsrc;
-    volatile uint8_t *const udr;
+    volatile uint8_t* const ubrrh;
+    volatile uint8_t* const ubrrl;
+    volatile uint8_t* const ucsra;
+    volatile uint8_t* const ucsrb;
+    volatile uint8_t* const ucsrc;
+    volatile uint8_t* const udr;
 
     // Buffer contents
     bool written;

@@ -11,6 +11,9 @@
 
 #define TRANSMIT_ATOMIC ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 
+inline uint8_t is_interrupt_enabled() { return SREG & (1 << SREG_I); }
+inline uint8_t is_interrupt_disabled() { return (SREG & (1 << SREG_I)) == 0; }
+
 inline void serial_set_ubrr(serial_t* serial, uint16_t ubrr)
 {
     *serial->ubrrh = ubrr >> 8;
@@ -47,8 +50,7 @@ void serial_construct(serial_t* serial, uint16_t bits_per_second, uint8_t config
     serial_double_speed_enable(serial);
 
     // If too low or in special case for Uno firmware, no double speed
-    if (ubrr > 4095 || bits_per_second == 57600)
-    {
+    if (ubrr > 4095 || bits_per_second == 57600) {
         ubrr = F_CPU / SERIAL_MODE_ASYNCHRONOUS_NORMAL_SCALE / bits_per_second - 1;
         serial_double_speed_disable(serial);
     }
@@ -64,11 +66,6 @@ void serial_construct(serial_t* serial, uint16_t bits_per_second, uint8_t config
     serial_receive_enable(serial);
     // serial_interrupt_receive_enable(serial);
     serial_interrupt_empty_disable(serial);
-
-    // Set zeros
-    serial->written = false;
-    serial->transmit_buffer_head = serial->transmit_buffer_tail = 0;
-    serial->receive_buffer_head = serial->receive_buffer_tail = 0;
 }
 
 void serial_destroy(serial_t* serial)
@@ -86,8 +83,7 @@ void serial_destroy(serial_t* serial)
 inline void serial_write_internal(serial_t* serial, uint8_t data)
 {
     *serial->udr = data;
-    *serial->ucsra &= (1 << U2X0) | (1 << MPCM0);  // Reset UCSRA register to any writeable bits TODO: necessary?
-    *serial->ucsra |= (1 << TXC0);                 // Clear the transmission complete bit
+    *serial->ucsra |= (1 << TXC0);  // Clear the transmission complete bit
 }
 
 uint8_t serial_write(serial_t* serial, uint8_t data)
@@ -108,7 +104,17 @@ uint8_t serial_write(serial_t* serial, uint8_t data)
     else
     {
         transmit_buffer_index_t next = (serial->transmit_buffer_head + 1) % SERIAL_TRANSMIT_BUFFER_SIZE;
-        while (next == serial->transmit_buffer_tail);  // Hang if the buffer is full, interrupt will handle
+
+        // Hang if the buffer is full, interrupt will handle
+        while (next == serial->transmit_buffer_tail)
+        {
+            // If interrupts are disabled, poll interrupt manually
+            if (is_interrupt_disabled() && serial_is_empty(serial))
+            {
+                serial_on_empty_interrupt(serial);
+            }
+        }
+
         serial->transmit_buffer[serial->transmit_buffer_head] = data; // Place in buffer
 
         // Increment head and re-enable interrupt, cannot be interrupted
@@ -146,5 +152,12 @@ void serial_flush(serial_t* serial)
     }
 
     // Otherwise wait for interrupt disable or done transmitting
-    while (serial_interrupt_empty_enabled(serial) || serial_is_transmit_complete(serial) == 0);
+    while (serial_interrupt_empty_enabled(serial) || !serial_is_transmit_complete(serial))
+    {
+        // If interrupts are disabled, but the empty interrupt is set, run interrupt code manually
+        if (is_interrupt_disabled() && serial_interrupt_empty_enabled(serial) && serial_is_empty(serial))
+        {
+            serial_on_empty_interrupt(serial);
+        }
+    }
 }
