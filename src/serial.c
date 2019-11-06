@@ -62,29 +62,25 @@ void serial_construct(serial_t* serial, uint16_t bits_per_second, uint8_t config
     // Set data, parity, and stop bits
     serial_transmit_enable(serial);
     serial_receive_enable(serial);
-    serial_interrupt_receive_enable(serial);
+    // serial_interrupt_receive_enable(serial);
     serial_interrupt_empty_disable(serial);
 }
 
-void serial_destroy(serial_t* serial)
-{
+void serial_destroy(serial_t* serial) {
     // Wait for transmission
     serial_flush(serial);
 
     // Clear flags
     serial_transmit_disable(serial);
     serial_receive_disable(serial);
-    serial_interrupt_receive_disable(serial);
+    // serial_interrupt_receive_disable(serial);
     serial_interrupt_empty_disable(serial);
-
-    // Set buffer indices
-    serial->receive_buffer_head = serial->receive_buffer_tail;
 }
 
 inline void serial_write_internal(serial_t* serial, uint8_t data)
 {
     *serial->udr = data;
-    *serial->ucsra &= (1 << U2X0) | (1 << MPCM0);  // Reset UCSRA register
+    *serial->ucsra &= (1 << U2X0) | (1 << MPCM0);  // Reset UCSRA register to any writeable bits TODO: necessary?
     *serial->ucsra |= (1 << TXC0);                 // Indicate that transmission done
 }
 
@@ -109,7 +105,7 @@ uint8_t serial_write(serial_t* serial, uint8_t data)
         while (next == serial->transmit_buffer_tail);  // Hang if the buffer is full, interrupt will handle
         serial->transmit_buffer[serial->transmit_buffer_head] = data; // Place in buffer
 
-        // Increment head and re-enable interrupt
+        // Increment head and re-enable interrupt, cannot be interrupted
         TRANSMIT_ATOMIC
         {
             serial->transmit_buffer_head = next;
@@ -122,7 +118,7 @@ uint8_t serial_write(serial_t* serial, uint8_t data)
 
 void serial_on_empty_interrupt(serial_t* serial)
 {
-    // Consume byte and rotate buffer tail
+    // Consume byte and advance buffer tail
     uint8_t data = serial->transmit_buffer[serial->transmit_buffer_tail];
     serial->transmit_buffer_tail = (serial->transmit_buffer_tail + 1) % SERIAL_TRANSMIT_BUFFER_SIZE;
 
