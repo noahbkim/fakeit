@@ -6,7 +6,7 @@ FUSES = -U hfuse:w:0xde:m -U lfuse:w:0xff:m -U efuse:w:0x05:m
 
 # Build
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -std=c99
 SOURCE = src
 BUILD = build
 
@@ -19,7 +19,10 @@ adc.o: build
 lcd.o: build
 	$(COMPILE) -c $(SOURCE)/lcd.c -o $(BUILD)/lcd.o
 
-main.o: adc.o lcd.o build
+serial.o: build
+	$(COMPILE) -c $(SOURCE)/serial.c -o $(BUILD)/serial.o
+
+main.o: adc.o lcd.o serial.o build
 	$(COMPILE) -c $(SOURCE)/main.c -o $(BUILD)/main.o
 
 main.elf: main.o

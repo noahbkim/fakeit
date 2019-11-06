@@ -3,17 +3,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "adc.h"
+#include "serial.h"
 
-void adc_setup()
+serial_t serial = { &UBRR0H, &UBRR0L, &UCSR0A, &UCSR0B, &UCSR0C, &UDR0 };
+
+ISR(UART0_UDRE_vect)
 {
-    adc_set_reference_voltage(ADC_REFERENCE_AVCC);  // AVcc
-    adc_set_prescaler(ADC_PRESCALER_128);           // 128 cycles per ADC clock cycle
-    adc_set_alignment(ADC_ALIGNMENT_LEFT);          // We'll only read top 8 bits
-    adc_enable();                                   // Start
+    serial_on_empty_interrupt(&serial);
+    return 0;
 }
 
 int main()
 {
-    adc_setup();
+    serial_construct(&serial, 9600, SERIAL_8N1);
+    _delay_ms(1000);
+
+    serial_write(&serial, 104);
+    serial_write(&serial, 105);
+    serial_write(&serial, 33);
+    serial_write(&serial, 10);
+    serial_write(&serial, 0);
+    serial_destroy(&serial);
     return 0;
 }
