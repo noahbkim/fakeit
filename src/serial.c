@@ -64,9 +64,15 @@ void serial_construct(serial_t* serial, uint16_t bits_per_second, uint8_t config
     serial_receive_enable(serial);
     // serial_interrupt_receive_enable(serial);
     serial_interrupt_empty_disable(serial);
+
+    // Set zeros
+    serial->written = false;
+    serial->transmit_buffer_head = serial->transmit_buffer_tail = 0;
+    serial->receive_buffer_head = serial->receive_buffer_tail = 0;
 }
 
-void serial_destroy(serial_t* serial) {
+void serial_destroy(serial_t* serial)
+{
     // Wait for transmission
     serial_flush(serial);
 
@@ -81,7 +87,7 @@ inline void serial_write_internal(serial_t* serial, uint8_t data)
 {
     *serial->udr = data;
     *serial->ucsra &= (1 << U2X0) | (1 << MPCM0);  // Reset UCSRA register to any writeable bits TODO: necessary?
-    *serial->ucsra |= (1 << TXC0);                 // Indicate that transmission done
+    *serial->ucsra |= (1 << TXC0);                 // Clear the transmission complete bit
 }
 
 uint8_t serial_write(serial_t* serial, uint8_t data)
@@ -111,7 +117,6 @@ uint8_t serial_write(serial_t* serial, uint8_t data)
             serial->transmit_buffer_head = next;
             serial_interrupt_empty_enable(serial);
         }
-
         return 1;
     }
 }
@@ -141,5 +146,5 @@ void serial_flush(serial_t* serial)
     }
 
     // Otherwise wait for interrupt disable or done transmitting
-    while (serial_interrupt_empty_enabled(serial) || serial_is_transmit_complete(serial) != 0);
+    while (serial_interrupt_empty_enabled(serial) || serial_is_transmit_complete(serial) == 0);
 }
