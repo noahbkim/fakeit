@@ -1,4 +1,5 @@
 #include "lcd.h"
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <avr/io.h>
@@ -145,4 +146,20 @@ void lcd_setup() {
     _delay_ms(2);
     lcd_send_control(0x28);     // Function Set: 4-bit interface, 2 lines
     lcd_send_control(0x0f);     // Display and cursor on
+}
+
+uint8_t lcd_closest_button(uint8_t adc_value)
+{
+    if (abs(adc_value - LCD_SELECT) < 10) {
+        return LCD_SELECT;
+    } else if (abs(adc_value - LCD_LEFT) < 10) {
+        return LCD_LEFT;
+    } else if (abs(adc_value - LCD_UP) < 10) {
+        return LCD_UP;
+    } else if (abs(adc_value - LCD_DOWN) < 10) {
+        return LCD_DOWN;
+    } else if (abs(adc_value - LCD_RIGHT) < 10) {
+        return LCD_RIGHT;
+    }
+    return LCD_NONE;
 }

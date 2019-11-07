@@ -59,7 +59,8 @@ void adc_wait()
     while (ADCSRA & (1 << ADSC));
 }
 
-uint8_t adc_read_high(uint8_t channel)
+/// Read only the top register for 8-bit resolution
+uint8_t adc_read_left(uint8_t channel)
 {
     adc_select_channel(channel);
     adc_start();
@@ -67,7 +68,8 @@ uint8_t adc_read_high(uint8_t channel)
     return ADCH;
 }
 
-uint16_t adc_read(uint8_t channel)
+/// Read right aligned result for 10-bit resolution
+uint16_t adc_read_right(uint8_t channel)
 {
     adc_select_channel(channel);
     adc_start();

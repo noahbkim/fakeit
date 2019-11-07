@@ -67,4 +67,10 @@ void serial_on_empty_interrupt(serial_t* serial);
 uint8_t serial_write(serial_t* serial, uint8_t data);
 void serial_flush(serial_t* serial);
 
+// Macro for setting up a serial channel
+#define SERIAL_SETUP(channel)\
+serial_t SERIAL##channel = { &UBRR##channel##H, &UBRR##channel##L, &UCSR##channel##A, &UCSR##channel##B, &UCSR##channel##C, &UDR##channel };\
+serial_t* const S##channel = &SERIAL##channel;\
+ISR(USART_UDRE_vect) { serial_on_empty_interrupt(S##channel); }\
+
 #endif //FAKEIT_SERIAL_H

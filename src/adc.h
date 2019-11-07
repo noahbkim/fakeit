@@ -1,5 +1,5 @@
-#ifndef FAKEIT_ADC_H
-#define FAKEIT_ADC_H
+#ifndef ADC_H
+#define ADC_H
 
 #include <stdint.h>
 
@@ -25,10 +25,10 @@ void adc_set_alignment(uint8_t alignment);
 void adc_set_prescaler(uint8_t factor);
 
 void adc_select_channel(uint8_t channel);
-uint8_t adc_read_high(uint8_t channel);
-uint16_t adc_read(uint8_t channel);
+uint8_t adc_read_left(uint8_t channel);
+uint16_t adc_read_right(uint8_t channel);
 
-#endif //FAKEIT_ADC_H
+#endif  // ADC_H
 
 // Example
 // void adc_setup()

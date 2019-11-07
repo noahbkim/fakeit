@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 // https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/HardwareSerial.h
+// https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/HardwareSerial.cpp
 
 #define SERIAL_MODE_ASYNCHRONOUS_NORMAL_SCALE 16
 #define SERIAL_MODE_ASYNCHRONOUS_DOUBLE_SCALE 8
@@ -14,34 +15,26 @@
 inline uint8_t is_interrupt_enabled() { return SREG & (1 << SREG_I); }
 inline uint8_t is_interrupt_disabled() { return (SREG & (1 << SREG_I)) == 0; }
 
+#define MANAGE_SERIAL_BIT(name, field, bit)\
+inline void serial_##name##_enable(serial_t* serial) { *serial->field |= (1 << bit); }\
+inline void serial_##name##_disable(serial_t* serial) { *serial->field &= ~(1 << bit); }\
+inline uint8_t serial_is_##name##_enabled(serial_t* serial) { return *serial->field & (1 << bit); }
+
+MANAGE_SERIAL_BIT(double_speed, ucsra, U2X0);
+MANAGE_SERIAL_BIT(transmit, ucsrb, TXEN0)
+MANAGE_SERIAL_BIT(receive, ucsrb, RXEN0)
+MANAGE_SERIAL_BIT(interrupt_transmit, ucsrb, TXCIE0)
+MANAGE_SERIAL_BIT(interrupt_receive, ucsrb, RXCIE0)
+MANAGE_SERIAL_BIT(interrupt_empty, ucsrb, UDRIE0)
+
+inline uint8_t serial_is_empty(serial_t* serial) { return *serial->ucsra & (1 << UDRE0); }
+inline uint8_t serial_is_transmit_complete(serial_t* serial) { return *serial->ucsra & (1 << TXC0); }
+
 inline void serial_set_ubrr(serial_t* serial, uint16_t ubrr)
 {
     *serial->ubrrh = ubrr >> 8;
     *serial->ubrrl = ubrr;
 }
-
-inline void serial_double_speed_enable(serial_t* serial) { *serial->ucsra |= (1 << U2X0); }
-inline void serial_double_speed_disable(serial_t* serial) { *serial->ucsra &= ~(1 << U2X0); }
-
-inline void serial_transmit_enable(serial_t* serial) { *serial->ucsrb |= (1 << TXEN0); }
-inline void serial_transmit_disable(serial_t* serial) { *serial->ucsrb &= ~(1 << TXEN0); }
-inline void serial_receive_enable(serial_t* serial) { *serial->ucsrb |= (1 << RXEN0); }
-inline void serial_receive_disable(serial_t* serial) { *serial->ucsrb &= ~(1 << RXEN0); }
-
-inline void serial_interrupt_transmit_enable(serial_t* serial) { *serial->ucsrb |= (1 << TXCIE0); }
-inline void serial_interrupt_transmit_disable(serial_t* serial) { *serial->ucsrb &= ~(1 << TXCIE0); }
-inline uint8_t serial_interrupt_transmit_enabled(serial_t* serial) { return *serial->ucsrb & (1 << TXCIE0); }
-
-inline void serial_interrupt_receive_enable(serial_t* serial) { *serial->ucsrb |= (1 << RXCIE0); }
-inline void serial_interrupt_receive_disable(serial_t* serial) { *serial->ucsrb &= ~(1 << RXCIE0); }
-inline uint8_t serial_interrupt_receive_enabled(serial_t* serial) { return *serial->ucsrb & (1 << RXCIE0); }
-
-inline void serial_interrupt_empty_enable(serial_t* serial) { *serial->ucsrb |= (1 << UDRIE0); }
-inline void serial_interrupt_empty_disable(serial_t* serial) { *serial->ucsrb &= ~(1 << UDRIE0); }
-inline uint8_t serial_interrupt_empty_enabled(serial_t* serial) { return *serial->ucsrb & (1 << UDRIE0); }
-
-inline uint8_t serial_is_empty(serial_t* serial) { return *serial->ucsra & (1 << UDRE0); }
-inline uint8_t serial_is_transmit_complete(serial_t* serial) { return *serial->ucsra & (1 << TXC0); }
 
 void serial_construct(serial_t* serial, uint16_t bits_per_second, uint8_t config)
 {
@@ -83,7 +76,9 @@ void serial_destroy(serial_t* serial)
 inline void serial_write_internal(serial_t* serial, uint8_t data)
 {
     *serial->udr = data;
-    *serial->ucsra |= (1 << TXC0);  // Clear the transmission complete bit
+
+    // Clear the transmission complete bit
+    *serial->ucsra |= (1 << TXC0);
 }
 
 uint8_t serial_write(serial_t* serial, uint8_t data)
@@ -152,10 +147,10 @@ void serial_flush(serial_t* serial)
     }
 
     // Otherwise wait for interrupt disable or done transmitting
-    while (serial_interrupt_empty_enabled(serial) || !serial_is_transmit_complete(serial))
+    while (serial_is_interrupt_empty_enabled(serial) || !serial_is_transmit_complete(serial))
     {
         // If interrupts are disabled, but the empty interrupt is set, run interrupt code manually
-        if (is_interrupt_disabled() && serial_interrupt_empty_enabled(serial) && serial_is_empty(serial))
+        if (is_interrupt_disabled() && serial_is_interrupt_empty_enabled(serial) && serial_is_empty(serial))
         {
             serial_on_empty_interrupt(serial);
         }
