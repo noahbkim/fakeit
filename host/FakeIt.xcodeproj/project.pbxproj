@@ -8,25 +8,29 @@
 
 /* Begin PBXBuildFile section */
 		29397DBB2373B98B00D015D6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DBA2373B98B00D015D6 /* AppDelegate.swift */; };
-		29397DBD2373B98B00D015D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DBC2373B98B00D015D6 /* ContentView.swift */; };
 		29397DBF2373B98D00D015D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 29397DBE2373B98D00D015D6 /* Assets.xcassets */; };
 		29397DC22373B98D00D015D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 29397DC12373B98D00D015D6 /* Preview Assets.xcassets */; };
 		29397DC52373B98D00D015D6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 29397DC32373B98D00D015D6 /* Main.storyboard */; };
 		29397DCF2373BAFD00D015D6 /* Serial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DCE2373BAFD00D015D6 /* Serial.swift */; };
-		29397DD12373BB9E00D015D6 /* Audio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DD02373BB9E00D015D6 /* Audio.swift */; };
+		29397DD12373BB9E00D015D6 /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DD02373BB9E00D015D6 /* Sampler.swift */; };
+		29397DD62375486B00D015D6 /* FakeItViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DD52375486B00D015D6 /* FakeItViewController.swift */; };
+		29397DF623754D9700D015D6 /* kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 29397DF423754D9700D015D6 /* kick.wav */; };
+		29397DF723754D9700D015D6 /* snare.wav in Resources */ = {isa = PBXBuildFile; fileRef = 29397DF523754D9700D015D6 /* snare.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		29397DB72373B98B00D015D6 /* FakeIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FakeIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		29397DBA2373B98B00D015D6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		29397DBC2373B98B00D015D6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		29397DBE2373B98D00D015D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		29397DC12373B98D00D015D6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		29397DC42373B98D00D015D6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		29397DC62373B98D00D015D6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		29397DC72373B98D00D015D6 /* FakeIt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FakeIt.entitlements; sourceTree = "<group>"; };
 		29397DCE2373BAFD00D015D6 /* Serial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serial.swift; sourceTree = "<group>"; };
-		29397DD02373BB9E00D015D6 /* Audio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audio.swift; sourceTree = "<group>"; };
+		29397DD02373BB9E00D015D6 /* Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
+		29397DD52375486B00D015D6 /* FakeItViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeItViewController.swift; sourceTree = "<group>"; };
+		29397DF423754D9700D015D6 /* kick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = kick.wav; sourceTree = "<group>"; };
+		29397DF523754D9700D015D6 /* snare.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = snare.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,9 +63,10 @@
 		29397DB92373B98B00D015D6 /* FakeIt */ = {
 			isa = PBXGroup;
 			children = (
+				29397DF323754D4700D015D6 /* Samples */,
+				29397DD42375483300D015D6 /* Components */,
 				29397DCD2373BAEB00D015D6 /* Library */,
 				29397DBA2373B98B00D015D6 /* AppDelegate.swift */,
-				29397DBC2373B98B00D015D6 /* ContentView.swift */,
 				29397DBE2373B98D00D015D6 /* Assets.xcassets */,
 				29397DC32373B98D00D015D6 /* Main.storyboard */,
 				29397DC62373B98D00D015D6 /* Info.plist */,
@@ -83,9 +88,26 @@
 			isa = PBXGroup;
 			children = (
 				29397DCE2373BAFD00D015D6 /* Serial.swift */,
-				29397DD02373BB9E00D015D6 /* Audio.swift */,
+				29397DD02373BB9E00D015D6 /* Sampler.swift */,
 			);
 			path = Library;
+			sourceTree = "<group>";
+		};
+		29397DD42375483300D015D6 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				29397DD52375486B00D015D6 /* FakeItViewController.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		29397DF323754D4700D015D6 /* Samples */ = {
+			isa = PBXGroup;
+			children = (
+				29397DF423754D9700D015D6 /* kick.wav */,
+				29397DF523754D9700D015D6 /* snare.wav */,
+			);
+			path = Samples;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -148,6 +170,8 @@
 			files = (
 				29397DC52373B98D00D015D6 /* Main.storyboard in Resources */,
 				29397DC22373B98D00D015D6 /* Preview Assets.xcassets in Resources */,
+				29397DF623754D9700D015D6 /* kick.wav in Resources */,
+				29397DF723754D9700D015D6 /* snare.wav in Resources */,
 				29397DBF2373B98D00D015D6 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -159,10 +183,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29397DD12373BB9E00D015D6 /* Audio.swift in Sources */,
-				29397DBD2373B98B00D015D6 /* ContentView.swift in Sources */,
+				29397DD12373BB9E00D015D6 /* Sampler.swift in Sources */,
 				29397DCF2373BAFD00D015D6 /* Serial.swift in Sources */,
 				29397DBB2373B98B00D015D6 /* AppDelegate.swift in Sources */,
+				29397DD62375486B00D015D6 /* FakeItViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -309,7 +333,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_BUNDLE_IDENTIFIER = com.noahbkim.FakeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -332,7 +356,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				PRODUCT_BUNDLE_IDENTIFIER = com.noahbkim.FakeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
