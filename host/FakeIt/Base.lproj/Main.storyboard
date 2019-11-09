@@ -711,20 +711,15 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aZD-GW-qiN">
-                                <rect key="frame" x="18" y="226" width="325" height="25"/>
-                                <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="b4Q-Jj-66e" id="yju-0j-ww0">
+                                <rect key="frame" x="18" y="226" width="225" height="25"/>
+                                <popUpButtonCell key="cell" type="push" title="No devices found" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="b4Q-Jj-66e" id="yju-0j-ww0">
                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="menu"/>
                                     <menu key="menu" id="ZWL-b8-5Ak">
                                         <items>
-                                            <menuItem title="Item 1" state="on" id="b4Q-Jj-66e"/>
-                                            <menuItem title="Item 2" id="Q0H-gp-APc"/>
-                                            <menuItem title="Item 3" id="d9b-Sm-kfM"/>
+                                            <menuItem title="No devices found" state="on" id="b4Q-Jj-66e"/>
                                         </items>
                                     </menu>
-                                    <connections>
-                                        <action selector="onSelectDevice:" target="HKp-vc-daX" id="IMe-SO-h0w"/>
-                                    </connections>
                                 </popUpButtonCell>
                             </popUpButton>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5se-BU-ARb">
@@ -732,7 +727,7 @@
                                 <constraints>
                                     <constraint firstAttribute="width" constant="100" id="WIV-2J-euh"/>
                                 </constraints>
-                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BW0-No-PkZ">
+                                <buttonCell key="cell" type="push" title="Connect" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BW0-No-PkZ">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -766,17 +761,31 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TcI-3c-ORo">
+                                <rect key="frame" x="244" y="222" width="112" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="VCf-CD-yBB"/>
+                                </constraints>
+                                <buttonCell key="cell" type="push" title="Refresh" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GoR-xv-fAL">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="onRefresh:" target="HKp-vc-daX" id="oki-nN-PnQ"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="aZD-GW-qiN" firstAttribute="top" secondItem="Acr-LL-dBd" secondAttribute="top" constant="20" id="9SZ-8O-Yo1"/>
-                            <constraint firstItem="5se-BU-ARb" firstAttribute="leading" secondItem="aZD-GW-qiN" secondAttribute="trailing" constant="20" id="J4E-c0-AhE"/>
+                            <constraint firstItem="5se-BU-ARb" firstAttribute="leading" secondItem="TcI-3c-ORo" secondAttribute="trailing" constant="10" id="HPF-00-Ilg"/>
                             <constraint firstAttribute="trailing" secondItem="5se-BU-ARb" secondAttribute="trailing" constant="20" id="Obh-0b-3C2"/>
+                            <constraint firstItem="TcI-3c-ORo" firstAttribute="leading" secondItem="aZD-GW-qiN" secondAttribute="trailing" constant="10" id="R1M-WW-mWb"/>
                             <constraint firstItem="5se-BU-ARb" firstAttribute="top" secondItem="Acr-LL-dBd" secondAttribute="top" constant="20" id="SFW-Fx-4Hs"/>
                             <constraint firstAttribute="bottom" secondItem="TtV-5r-BGB" secondAttribute="bottom" constant="20" id="bVi-M7-TES"/>
                             <constraint firstItem="TtV-5r-BGB" firstAttribute="leading" secondItem="Acr-LL-dBd" secondAttribute="leading" constant="20" id="gss-QL-qr4"/>
                             <constraint firstItem="TtV-5r-BGB" firstAttribute="top" secondItem="aZD-GW-qiN" secondAttribute="bottom" constant="8" id="nmF-Y4-JQ5"/>
                             <constraint firstItem="aZD-GW-qiN" firstAttribute="leading" secondItem="Acr-LL-dBd" secondAttribute="leading" constant="20" id="o1K-Sa-vf3"/>
-                            <constraint firstItem="5se-BU-ARb" firstAttribute="leading" secondItem="aZD-GW-qiN" secondAttribute="trailing" constant="20" id="rI2-0O-rlx"/>
+                            <constraint firstItem="TcI-3c-ORo" firstAttribute="top" secondItem="Acr-LL-dBd" secondAttribute="top" constant="20" id="sMK-GP-Qo0"/>
                             <constraint firstAttribute="trailing" secondItem="TtV-5r-BGB" secondAttribute="trailing" constant="20" id="z19-LW-eE4"/>
                         </constraints>
                     </view>

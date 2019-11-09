@@ -1,6 +1,5 @@
 import Foundation
 import Darwin
-import Darwin.C
 
 // https://github.com/yeokm1/SwiftSerial/blob/master/Sources/SwiftSerial.swift
 
@@ -65,7 +64,8 @@ public enum SerialStopSize {
 }
 
 public enum SerialError : Error {
-    case serialPathInaccessible
+    case serialOpenFailed(errno: Int32)
+    case serialBlockingFailed(errno: Int32)
     case serialClosed
     case serialDisconnected
 }
@@ -93,10 +93,9 @@ typealias SerialSpecialCharacters = (
     spare: cc_t
 )
 
-func nullSerialSpecialCharacters() -> SerialSpecialCharacters {
+func ZeroSerialSpecialCharacters() -> SerialSpecialCharacters {
     return (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 }
-
 
 public class Serial {
     public let path: String
@@ -106,30 +105,29 @@ public class Serial {
     private var open: Bool
 
     public init(path: String, mode: SerialMode) throws {
-        // Set path, open file
         self.path = path
-        self.fd = Darwin.open(self.path, mode.flag | O_NOCTTY | O_EXLOCK)
+        self.fd = Darwin.open(path, O_RDWR | O_NOCTTY | O_EXLOCK | O_NDELAY | O_NONBLOCK)
         
-        // Check descriptor
-        guard self.fd != -1 else {
-            throw SerialError.serialPathInaccessible
-        }
+        // Check file descriptor, set status
+        guard self.fd != -1 else { throw SerialError.serialOpenFailed(errno: errno) }
         self.open = true
         
         // Get settings defaults
         self.settings = termios()
-        self.characters = nullSerialSpecialCharacters()
+        self.characters = ZeroSerialSpecialCharacters()
         tcgetattr(self.fd, &self.settings)
     }
     
-    public func set() {
-        // Add special characters and flags
+    public func set() throws {
         settings.c_cc = self.characters
-        settings.c_cflag |= tcflag_t(CREAD | CLOCAL)  // Turn on the receiver of the serial port
+        settings.c_cflag |= tcflag_t(CREAD | CLOCAL)                 // Turn on the receiver of the serial port
         settings.c_lflag &= ~tcflag_t(ICANON | ECHO | ECHOE | ISIG)  // Turn off canonical mode
 
         // Apply to settings
         tcsetattr(self.fd, TCSANOW, &self.settings)
+        
+        // Block other connections
+        guard fcntl(self.fd, F_SETFL, 0) != -1 else { throw SerialError.serialBlockingFailed(errno: errno) }
     }
     
     public func set(speed: speed_t) {
@@ -187,10 +185,9 @@ public class Serial {
     }
     
     public func read(into buffer: UnsafeMutablePointer<UInt8>, size: Int) throws -> Int {
-        guard self.open else {
-            throw SerialError.serialClosed
-        }
+        guard self.open else { throw SerialError.serialClosed }
         
+        // Check if we're still connected
         var status = stat()
         fstat(self.fd, &status)
         if status.st_nlink != 1 {
@@ -198,11 +195,52 @@ public class Serial {
             throw SerialError.serialDisconnected
         }
 
+        // Actually read into the buffer
         return Darwin.read(self.fd, buffer, size)
     }
+    
+    public static func list(prefix: String = "tty.") throws -> [String] {
+        var paths: [String] = []
+        for path in try FileManager.default.contentsOfDirectory(atPath: "/dev") {
+            if (path.starts(with: prefix)) {
+                paths.append(path)
+            }
+        }
+        return paths
+    }
+
     
     public func close() {
         Darwin.close(self.fd)
         self.open = false
+    }
+}
+
+class SerialMonitor {
+    private let serial: Serial
+    private var live: Bool
+    
+    public init(_ serial: Serial) {
+        self.serial = serial
+        self.live = true
+    }
+    
+    public func listen(_ callback: @escaping (UInt8) -> Void) {
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
+        var read = 0
+        while (self.live) {
+            do {
+                read = try serial.read(into: buffer, size: 1)
+            } catch {
+                return
+            }
+            if read > 0 {
+                callback(buffer[0])
+            }
+        }
+    }
+    
+    public func kill() {
+        self.live = false
     }
 }

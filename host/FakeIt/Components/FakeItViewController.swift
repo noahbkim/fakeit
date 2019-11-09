@@ -2,126 +2,150 @@ import Cocoa
 
 // https://medium.com/@prasanna.aithal/multi-threading-in-ios-using-swift-82f3601f171c
 
-let DEVICE_PREFIX = "cu."
-
 class FakeItViewController: NSViewController {
     @IBOutlet weak var devicePopUp: NSPopUpButton!
     @IBOutlet weak var connectButton: NSButton!
-    @IBOutlet var logText: NSTextView!
+    @IBOutlet weak var logText: NSTextView!
     
-    private var receiver: Thread? = nil
-    private var kill: Bool = false
+    private var devices: [String] = []
+    private var monitor: SerialMonitor? = nil
+    private var thread: Thread? = nil
     
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
-        self.scanDevices()
         self.logText.isEditable = false
-        self.connectButton.title = "Connect"
+        self.populateDevicePopUp()
     }
     
-    private func scanDevices() {
-        devicePopUp.removeAllItems()
-        if let paths = try? FileManager.default.contentsOfDirectory(atPath: "/dev") {
-            if (paths.count == 0) {
-                devicePopUp.addItem(withTitle: "No devices found!")
-            } else {
-                for path in paths {
-                    if (path.starts(with: DEVICE_PREFIX)) {
-                        devicePopUp.addItem(withTitle: path)
-                    }
-                }
+    override public func viewDidAppear() {
+        super.viewDidAppear()
+        self.view.window?.title = "FakeIt"
+    }
+    
+    private func populateDevicePopUp() {
+        self.devicePopUp.removeAllItems()
+        if let paths = try? Serial.list() {
+            self.devices = paths
+            paths.forEach(self.devicePopUp.addItem)
+            if paths.count == 0 {
+                self.devicePopUp.addItem(withTitle: "No devices found")
             }
         } else {
-            devicePopUp.addItem(withTitle: "Error scanning devices!")
+            self.log("Could not scan for devices!")
         }
-        devicePopUp.addItem(withTitle: "Scan again")
+        self.updateControls()
     }
     
+    private func updateControls() {
+        self.connectButton.isEnabled = self.devices.count > 0
+        self.connectButton.title = self.thread == nil ? "Connect" : "Disconnect"
+    }
+    
+    @IBAction func onRefresh(_ sender: Any) {
+        self.populateDevicePopUp()
+    }
+    
+    @IBAction func onConnect(_ sender: NSButton) {
+        if self.isMonitoring() {
+            self.stopMonitor()
+        } else if let selectedItem = self.devicePopUp.selectedItem {
+            self.startMonitor("/dev/\(selectedItem.title)")
+        } else {
+            self.log("No device selected")
+        }
+        self.updateControls()
+    }
+}
+
+// Serial
+extension FakeItViewController {
+    
+    private func startMonitor(_ device: String) {
+        let thread = Thread.init(target: self, selector: #selector(runMonitor), object: device)
+        self.thread = thread
+        thread.start()
+    }
+    
+    private func createSerial(path: String) -> Serial? {
+        var serial: Serial;
+        
+        // Create the serial socket
+        do {
+            serial = try Serial(path: path, mode: .r)
+        } catch SerialError.serialOpenFailed(let errno) {
+            self.logAsync("Failed to open serial: \(errno)")
+            return nil
+        } catch {
+            self.logAsync("Failed to open serial")
+            return nil
+        }
+        
+        // Configure
+        serial.set(speed: speed_t(B9600))
+        serial.set(dataSize: .eight, stopSize: .one)
+        serial.set(minimumRead: 1)
+        
+        // Commit
+        do {
+            try serial.set()
+        } catch SerialError.serialBlockingFailed(let errno) {
+            self.logAsync("Failed to configure serial: \(errno)")
+            return nil
+        } catch {
+            self.logAsync("Failed to configure serial")
+            return nil
+        }
+        
+        return serial
+    }
+
+    /// List all devices with the given prefix
+    @objc
+    private func runMonitor(_ path: String) {
+        self.logAsync("Connecting to \(path)")
+        guard let serial = self.createSerial(path: path) else { return }
+        defer { serial.close() }
+
+        let monitor = SerialMonitor(serial)
+        self.monitor = monitor
+        monitor.listen() { byte in
+            if byte == 107 {
+                DispatchQueue.main.async {
+                    DrumSampler.shared.kick()
+                }
+            }
+        }
+    }
+    
+    private func isMonitoring() -> Bool {
+        return self.monitor != nil
+    }
+    
+    private func stopMonitor() {
+        if let monitor = self.monitor, let thread = self.thread {
+            monitor.kill()
+            thread.cancel()
+            self.monitor = nil
+            self.thread = nil
+            self.updateControls()
+            self.log("Done monitoring!")
+        }
+    }
+}
+
+// Logging
+extension FakeItViewController {
     private func logClear() {
         self.logText.string = ""
     }
     
-    private func logPrint(_ string: String, end: String = "\n") {
-        self.logText.string += string + end
-    }
-    
-    @objc
-    private func serialScan(_ device: String) {
-        let path = "/dev/\(device)"
+    private func logAsync(_ string: String, end: String = "\n") {
         DispatchQueue.main.async {
-            self.logPrint("Connecting to \(path)")
-        }
-        defer {
-            DispatchQueue.main.async {
-                self.logPrint("Done receiving")
-                self.connectButton.title = "Connect"
-                self.kill = false
-            }
-        }
-        
-        guard let serial = try? Serial(path: path, mode: .r) else {
-            DispatchQueue.main.async {
-                self.logPrint("Failed to open serial")
-            }
-            return
-        }
-        serial.set(speed: speed_t(B9600))
-        serial.set(dataSize: .eight, stopSize: .one)
-        serial.set(minimumRead: 1)
-        serial.set()
-
-        defer {
-            serial.close()
-        }
-
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
-        var read = 0
-        while (!self.kill) {
-            do {
-                read = try serial.read(into: buffer, size: 1)
-            } catch let error {
-                DispatchQueue.main.async {
-                    self.logPrint("Error reading into buffer: \(error)")
-                }
-                return
-            }
-            if read > 0 {
-                DispatchQueue.main.async {
-                    self.logPrint(String(bytes: [buffer[0]], encoding: .utf8) ?? "?", end: "")
-                }
-            }
+            self.log(string, end: end)
         }
     }
     
-    @IBAction func onSelectDevice(_ sender: NSPopUpButton) {
-        guard let selectedItem = self.devicePopUp.selectedItem else { return }
-        if selectedItem.title == "Scan again" {
-            scanDevices()
-        } else if selectedItem.title.starts(with: DEVICE_PREFIX) {
-            self.connectButton.isEnabled = true
-        } else {
-            self.connectButton.isEnabled = false
-        }
-    }
-    
-    @IBAction func onConnect(_ sender: NSButton) {
-        if let receiver = self.receiver {
-            self.kill = true
-            receiver.cancel()
-            self.receiver = nil
-        } else {
-            if let selectedItem = self.devicePopUp.selectedItem, selectedItem.title.starts(with: DEVICE_PREFIX) {
-                let receiver = Thread.init(target: self, selector: #selector(serialScan), object: selectedItem.title)
-                self.receiver = receiver
-                receiver.start()
-            } else {
-                self.logPrint("No device selected")
-            }
-            self.connectButton.title = "Disconnect"
-        }
-    }
-    
-    @IBAction func kick(_ sender: NSButton) {
-        DrumSampler.shared.kick()
+    private func log(_ string: String, end: String = "\n") {
+        self.logText.string += string + end
     }
 }
