@@ -2,6 +2,8 @@ import Cocoa
 
 // https://medium.com/@prasanna.aithal/multi-threading-in-ios-using-swift-82f3601f171c
 
+let DEVICE_PREFIX = "cu."
+
 class FakeItViewController: NSViewController {
     @IBOutlet weak var devicePopUp: NSPopUpButton!
     @IBOutlet weak var connectButton: NSButton!
@@ -24,7 +26,7 @@ class FakeItViewController: NSViewController {
                 devicePopUp.addItem(withTitle: "No devices found!")
             } else {
                 for path in paths {
-                    if (path.starts(with: "tty.")) {
+                    if (path.starts(with: DEVICE_PREFIX)) {
                         devicePopUp.addItem(withTitle: path)
                     }
                 }
@@ -45,9 +47,21 @@ class FakeItViewController: NSViewController {
     
     @objc
     private func serialScan(_ device: String) {
-        guard let serial = try? Serial(path: "/dev/\(device)", mode: .r) else {
+        let path = "/dev/\(device)"
+        DispatchQueue.main.async {
+            self.logPrint("Connecting to \(path)")
+        }
+        defer {
             DispatchQueue.main.async {
-                self.logPrint("Failed to open serial!")
+                self.logPrint("Done receiving")
+                self.connectButton.title = "Connect"
+                self.kill = false
+            }
+        }
+        
+        guard let serial = try? Serial(path: path, mode: .r) else {
+            DispatchQueue.main.async {
+                self.logPrint("Failed to open serial")
             }
             return
         }
@@ -55,19 +69,14 @@ class FakeItViewController: NSViewController {
         serial.set(dataSize: .eight, stopSize: .one)
         serial.set(minimumRead: 1)
         serial.set()
-        
+
         defer {
             serial.close()
-            DispatchQueue.main.async {
-                self.logPrint("Done receiving!")
-                self.connectButton.title = "Connect"
-                self.kill = false
-            }
         }
-        
+
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
         var read = 0
-        while (true) {
+        while (!self.kill) {
             do {
                 read = try serial.read(into: buffer, size: 1)
             } catch let error {
@@ -81,9 +90,6 @@ class FakeItViewController: NSViewController {
                     self.logPrint(String(bytes: [buffer[0]], encoding: .utf8) ?? "?", end: "")
                 }
             }
-            if self.kill {
-                return
-            }
         }
     }
     
@@ -91,7 +97,7 @@ class FakeItViewController: NSViewController {
         guard let selectedItem = self.devicePopUp.selectedItem else { return }
         if selectedItem.title == "Scan again" {
             scanDevices()
-        } else if selectedItem.title.starts(with: "tty.") {
+        } else if selectedItem.title.starts(with: DEVICE_PREFIX) {
             self.connectButton.isEnabled = true
         } else {
             self.connectButton.isEnabled = false
@@ -104,13 +110,12 @@ class FakeItViewController: NSViewController {
             receiver.cancel()
             self.receiver = nil
         } else {
-            if let selectedItem = self.devicePopUp.selectedItem, selectedItem.title.starts(with: "tty.") {
-                self.logPrint("Connecting to \(selectedItem.title)...")
-                let receiver = Thread.init(target: self, selector: #selector(serialScan), object: nil)
+            if let selectedItem = self.devicePopUp.selectedItem, selectedItem.title.starts(with: DEVICE_PREFIX) {
+                let receiver = Thread.init(target: self, selector: #selector(serialScan), object: selectedItem.title)
                 self.receiver = receiver
                 receiver.start()
             } else {
-                self.logPrint("No device selected!")
+                self.logPrint("No device selected")
             }
             self.connectButton.title = "Disconnect"
         }

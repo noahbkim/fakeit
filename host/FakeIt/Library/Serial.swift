@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import Darwin.C
 
 // https://github.com/yeokm1/SwiftSerial/blob/master/Sources/SwiftSerial.swift
 
@@ -122,13 +123,12 @@ public class Serial {
     }
     
     public func set() {
+        // Add special characters and flags
         settings.c_cc = self.characters
         settings.c_cflag |= tcflag_t(CREAD | CLOCAL)  // Turn on the receiver of the serial port
         settings.c_lflag &= ~tcflag_t(ICANON | ECHO | ECHOE | ISIG)  // Turn off canonical mode
-        settings.c_oflag &= ~tcflag_t(OPOST)
-        settings.c_iflag &= ~tcflag_t(IXON | IXOFF | IXANY)
-        settings.c_cflag &= ~tcflag_t(CRTS_IFLOW)
-        settings.c_cflag &= ~tcflag_t(CCTS_OFLOW)
+
+        // Apply to settings
         tcsetattr(self.fd, TCSANOW, &self.settings)
     }
     
@@ -147,7 +147,33 @@ public class Serial {
            settings.c_cflag |= tcflag_t(CSTOPB)
         }
     }
+    
+    public func set(useHardwareFlowControl: Bool) {
+        if useHardwareFlowControl {
+            settings.c_cflag |= tcflag_t(CRTS_IFLOW)
+            settings.c_cflag |= tcflag_t(CCTS_OFLOW)
+        } else {
+            settings.c_cflag &= ~tcflag_t(CRTS_IFLOW)
+            settings.c_cflag &= ~tcflag_t(CCTS_OFLOW)
+        }
+    }
 
+    public func set(useSoftwareFlowControl: Bool) {
+        if useSoftwareFlowControl {
+            settings.c_iflag |= tcflag_t(IXON | IXOFF | IXANY)
+        } else {
+            settings.c_iflag &= ~tcflag_t(IXON | IXOFF | IXANY)
+        }
+    }
+    
+    public func set(processOutput: Bool) {
+        if processOutput {
+            settings.c_oflag |= tcflag_t(OPOST)
+        } else {
+            settings.c_oflag &= ~tcflag_t(OPOST)
+        }
+    }
+    
     public func set(parity: SerialParity) {
         self.settings.c_cflag |= parity.flag;
     }

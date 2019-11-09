@@ -16,13 +16,10 @@ build:
 adc.o: build
 	$(COMPILE) -c $(SOURCE)/adc.c -o $(BUILD)/adc.o
 
-lcd.o: build
-	$(COMPILE) -c $(SOURCE)/lcd.c -o $(BUILD)/lcd.o
-
 serial.o: build
 	$(COMPILE) -c $(SOURCE)/serial.c -o $(BUILD)/serial.o
 
-main.o: adc.o lcd.o serial.o build
+main.o: adc.o serial.o build
 	$(COMPILE) -c $(SOURCE)/main.c -o $(BUILD)/main.o
 
 main.elf: main.o
