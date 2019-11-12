@@ -16,8 +16,6 @@
 		29397DD62375486B00D015D6 /* FakeItViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DD52375486B00D015D6 /* FakeItViewController.swift */; };
 		29397DF623754D9700D015D6 /* kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 29397DF423754D9700D015D6 /* kick.wav */; };
 		29397DF723754D9700D015D6 /* snare.wav in Resources */ = {isa = PBXBuildFile; fileRef = 29397DF523754D9700D015D6 /* snare.wav */; };
-		29397DF92375CB2B00D015D6 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DF82375CB2B00D015D6 /* Files.swift */; };
-		29397DFB2375D63D00D015D6 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29397DFA2375D63D00D015D6 /* Queue.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,8 +31,6 @@
 		29397DD52375486B00D015D6 /* FakeItViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeItViewController.swift; sourceTree = "<group>"; };
 		29397DF423754D9700D015D6 /* kick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = kick.wav; sourceTree = "<group>"; };
 		29397DF523754D9700D015D6 /* snare.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = snare.wav; sourceTree = "<group>"; };
-		29397DF82375CB2B00D015D6 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
-		29397DFA2375D63D00D015D6 /* Queue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,9 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				29397DCE2373BAFD00D015D6 /* Serial.swift */,
-				29397DFA2375D63D00D015D6 /* Queue.swift */,
 				29397DD02373BB9E00D015D6 /* Sampler.swift */,
-				29397DF82375CB2B00D015D6 /* Files.swift */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -189,10 +183,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29397DFB2375D63D00D015D6 /* Queue.swift in Sources */,
 				29397DD12373BB9E00D015D6 /* Sampler.swift in Sources */,
 				29397DCF2373BAFD00D015D6 /* Serial.swift in Sources */,
-				29397DF92375CB2B00D015D6 /* Files.swift in Sources */,
 				29397DBB2373B98B00D015D6 /* AppDelegate.swift in Sources */,
 				29397DD62375486B00D015D6 /* FakeItViewController.swift in Sources */,
 			);
